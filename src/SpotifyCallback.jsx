@@ -22,8 +22,8 @@ export default function SpotifyCallback() {
         // Optionally: Clean the URL to just '/' (remove code query)
         window.history.replaceState({}, document.title, '/')
 
-        // Redirect to home or dashboard
-        navigate('/')
+        // Redirect to dashboard after successful auth
+        navigate('/dashboard')
       } catch (err) {
         console.error(err)
         setError(err.message)
