@@ -7,6 +7,9 @@ const SCOPES = [
   'user-read-email',
   'user-top-read',
   'playlist-read-private',
+  'playlist-read-collaborative',
+  'playlist-modify-public',
+  'playlist-modify-private',
   'streaming',
   'user-read-playback-state',
   'user-modify-playback-state'

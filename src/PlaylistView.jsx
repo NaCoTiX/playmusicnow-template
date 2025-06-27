@@ -1,0 +1,248 @@
+
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+export default function PlaylistView() {
+  const { playlistId } = useParams()
+  const navigate = useNavigate()
+  const [playlist, setPlaylist] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Load playlist from localStorage
+    const saved = localStorage.getItem('collaborativePlaylists')
+    if (saved) {
+      const playlists = JSON.parse(saved)
+      const found = playlists.find(p => p.shareLink.includes(playlistId))
+      if (found) {
+        setPlaylist(found)
+      }
+    }
+    setLoading(false)
+  }, [playlistId])
+
+  const searchSpotify = () => {
+    if (!searchTerm.trim()) return
+
+    // Simulate Spotify search results
+    const mockResults = [
+      { id: '1', name: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20' },
+      { id: '2', name: 'Good 4 U', artist: 'Olivia Rodrigo', duration: '2:58' },
+      { id: '3', name: 'Stay', artist: 'The Kid LAROI, Justin Bieber', duration: '2:21' },
+      { id: '4', name: 'Levitating', artist: 'Dua Lipa', duration: '3:23' },
+      { id: '5', name: 'Peaches', artist: 'Justin Bieber ft. Daniel Caesar, Giveon', duration: '3:18' }
+    ].filter(song => 
+      song.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    
+    setSearchResults(mockResults)
+  }
+
+  const addSongToPlaylist = (song) => {
+    if (!playlist) return
+
+    const newSong = {
+      ...song,
+      addedBy: 'Anonymous User',
+      addedAt: new Date().toISOString()
+    }
+
+    const updatedPlaylist = {
+      ...playlist,
+      songs: [...playlist.songs, newSong]
+    }
+
+    // Update localStorage
+    const saved = localStorage.getItem('collaborativePlaylists')
+    if (saved) {
+      const playlists = JSON.parse(saved)
+      const updated = playlists.map(p => 
+        p.shareLink.includes(playlistId) ? updatedPlaylist : p
+      )
+      localStorage.setItem('collaborativePlaylists', JSON.stringify(updated))
+    }
+
+    setPlaylist(updatedPlaylist)
+    alert(`Added "${song.name}" to the playlist!`)
+  }
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', marginTop: '3rem' }}>Loading...</div>
+  }
+
+  if (!playlist) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '3rem', padding: '2rem' }}>
+        <h2>Playlist not found</h2>
+        <p>The playlist you're looking for doesn't exist or has been removed.</p>
+        <button 
+          onClick={() => navigate('/')}
+          style={{
+            backgroundColor: '#1DB954',
+            color: 'white',
+            border: 'none',
+            padding: '1rem 2rem',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          Go Home
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ marginBottom: '2rem' }}>
+        <button 
+          onClick={() => navigate('/')}
+          style={{
+            backgroundColor: '#666',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginBottom: '1rem'
+          }}
+        >
+          ← Back to Home
+        </button>
+        
+        <h1 style={{ color: '#1DB954', marginBottom: '0.5rem' }}>{playlist.name}</h1>
+        <p style={{ color: '#666', marginBottom: '1rem' }}>{playlist.description}</p>
+        <p style={{ fontSize: '0.9rem', color: '#999' }}>
+          Created by {playlist.createdBy} • {playlist.songs.length} songs
+        </p>
+      </div>
+
+      <div style={{ 
+        backgroundColor: '#f9f9f9', 
+        padding: '2rem', 
+        borderRadius: '12px', 
+        marginBottom: '2rem',
+        border: '1px solid #ddd'
+      }}>
+        <h2 style={{ marginBottom: '1rem' }}>Add Songs to Playlist</h2>
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+          <input 
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && searchSpotify()}
+            style={{ 
+              flex: 1, 
+              padding: '0.8rem', 
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontSize: '1rem'
+            }}
+            placeholder="Search for songs, artists, or albums..."
+          />
+          <button 
+            onClick={searchSpotify}
+            style={{
+              backgroundColor: '#1DB954',
+              color: 'white',
+              border: 'none',
+              padding: '0.8rem 1.5rem',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            Search
+          </button>
+        </div>
+
+        {searchResults.length > 0 && (
+          <div>
+            <h3 style={{ marginBottom: '1rem' }}>Search Results</h3>
+            {searchResults.map(song => (
+              <div key={song.id} style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '1rem',
+                backgroundColor: 'white',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                marginBottom: '0.5rem'
+              }}>
+                <div>
+                  <h4 style={{ margin: 0, color: '#333' }}>{song.name}</h4>
+                  <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>{song.artist} • {song.duration}</p>
+                </div>
+                <button 
+                  onClick={() => addSongToPlaylist(song)}
+                  style={{
+                    backgroundColor: '#1DB954',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Add
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 style={{ marginBottom: '1rem' }}>Current Playlist ({playlist.songs.length} songs)</h2>
+        {playlist.songs.length === 0 ? (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '3rem', 
+            backgroundColor: '#f9f9f9',
+            borderRadius: '8px',
+            border: '1px solid #ddd'
+          }}>
+            <p style={{ color: '#666' }}>No songs in this playlist yet. Be the first to add one!</p>
+          </div>
+        ) : (
+          playlist.songs.map((song, index) => (
+            <div key={index} style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              padding: '1rem',
+              backgroundColor: 'white',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              marginBottom: '0.5rem'
+            }}>
+              <div>
+                <h4 style={{ margin: 0, color: '#333' }}>{song.name}</h4>
+                <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>
+                  {song.artist} • {song.duration}
+                </p>
+                <p style={{ margin: 0, color: '#999', fontSize: '0.8rem' }}>
+                  Added by {song.addedBy} on {new Date(song.addedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <button style={{
+                backgroundColor: '#1976d2',
+                color: 'white',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}>
+                ▶️ Play
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}

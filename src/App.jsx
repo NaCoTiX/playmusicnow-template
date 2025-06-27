@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Login from './Login'
 import SpotifyCallback from './SpotifyCallback'
 import Dashboard from './Dashboard'
+import PlaylistView from './PlaylistView'
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/callback" element={<SpotifyCallback />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/playlist/:playlistId" element={<PlaylistView />} />
       </Routes>
     </Router>
   )
