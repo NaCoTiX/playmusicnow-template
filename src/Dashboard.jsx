@@ -225,15 +225,18 @@ export default function Dashboard() {
                 >
                   📋 Copy Share Link
                 </button>
-                <button style={{ 
-                  backgroundColor: '#1976d2', 
-                  color: 'white', 
-                  border: 'none', 
-                  padding: '0.6rem 1rem',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem'
-                }}>
+                <button 
+                  onClick={() => navigate(`/playlist/${playlist.id}`)}
+                  style={{ 
+                    backgroundColor: '#1976d2', 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '0.6rem 1rem',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
+                  }}
+                >
                   🎵 Manage Songs
                 </button>
               </div>

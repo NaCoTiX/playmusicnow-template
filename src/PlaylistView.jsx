@@ -15,7 +15,7 @@ export default function PlaylistView() {
     const saved = localStorage.getItem('collaborativePlaylists')
     if (saved) {
       const playlists = JSON.parse(saved)
-      const found = playlists.find(p => p.shareLink.includes(playlistId))
+      const found = playlists.find(p => p.id === playlistId || p.shareLink.includes(playlistId))
       if (found) {
         setPlaylist(found)
       }
@@ -60,7 +60,7 @@ export default function PlaylistView() {
     if (saved) {
       const playlists = JSON.parse(saved)
       const updated = playlists.map(p => 
-        p.shareLink.includes(playlistId) ? updatedPlaylist : p
+        p.id === playlistId || p.shareLink.includes(playlistId) ? updatedPlaylist : p
       )
       localStorage.setItem('collaborativePlaylists', JSON.stringify(updated))
     }
@@ -118,6 +118,43 @@ export default function PlaylistView() {
         <p style={{ fontSize: '0.9rem', color: '#999' }}>
           Created by {playlist.createdBy} • {playlist.songs.length} songs
         </p>
+        <div style={{ 
+          backgroundColor: '#e3f2fd', 
+          padding: '1rem', 
+          borderRadius: '8px', 
+          marginTop: '1rem',
+          border: '1px solid #2196f3'
+        }}>
+          <p style={{ margin: 0, color: '#1976d2', fontWeight: 'bold' }}>
+            📤 Share this playlist: Anyone with this link can add songs!
+          </p>
+          <p style={{ 
+            margin: '0.5rem 0 0 0', 
+            fontSize: '0.9rem', 
+            color: '#666',
+            wordBreak: 'break-all'
+          }}>
+            {window.location.href}
+          </p>
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href)
+              alert('Playlist link copied to clipboard!')
+            }}
+            style={{
+              backgroundColor: '#2196f3',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginTop: '0.5rem',
+              fontSize: '0.9rem'
+            }}
+          >
+            📋 Copy Link
+          </button>
+        </div>
       </div>
 
       <div style={{ 
