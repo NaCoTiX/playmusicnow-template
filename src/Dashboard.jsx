@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from './ThemeProvider'
 import SpotifyService from './spotifyService.js'
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { isDark, toggleTheme, colors } = useTheme()
   const [user, setUser] = useState(null)
   const [playlists, setPlaylists] = useState([])
   const [collaborativePlaylists, setCollaborativePlaylists] = useState([])
@@ -12,6 +14,7 @@ export default function Dashboard() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [newPlaylistName, setNewPlaylistName] = useState('')
   const [newPlaylistDescription, setNewPlaylistDescription] = useState('')
+  const [showQRCode, setShowQRCode] = useState(null)
 
   useEffect(() => {
     const spotifyService = new SpotifyService()
@@ -61,7 +64,12 @@ export default function Dashboard() {
       createdBy: user.name,
       createdAt: new Date().toISOString(),
       songs: [],
-      shareLink: `${window.location.origin}/playlist/${Date.now()}`
+      shareLink: `${window.location.origin}/playlist/${Date.now()}`,
+      analytics: {
+        totalContributors: 0,
+        topGenres: [],
+        activityTimeline: []
+      }
     }
     
     const updated = [...collaborativePlaylists, newPlaylist]
@@ -77,6 +85,10 @@ export default function Dashboard() {
   const copyShareLink = (shareLink) => {
     navigator.clipboard.writeText(shareLink)
     alert('Share link copied to clipboard!')
+  }
+
+  const generateQRCode = (text) => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`
   }
 
   const syncToSpotify = async (playlist) => {
@@ -113,33 +125,86 @@ export default function Dashboard() {
 
   const logout = () => {
     localStorage.removeItem('spotifyAuthCode')
-    localStorage.removeItem('code_verifier')
+    localStorage.removeItem('spotify_access_token')
+    localStorage.removeItem('spotify_refresh_token')
     navigate('/')
   }
 
-  if (loading) return <div style={{ textAlign: 'center', marginTop: '3rem' }}>Loading...</div>
+  const getPlaylistAnalytics = (playlist) => {
+    const uniqueContributors = new Set(playlist.songs.map(s => s.addedBy)).size
+    const totalVotes = playlist.songs.reduce((sum, song) => 
+      (song.upvotes || 0) + (song.downvotes || 0) + sum, 0
+    )
+    
+    return {
+      contributors: uniqueContributors,
+      totalSongs: playlist.songs.length,
+      totalVotes,
+      avgScore: playlist.songs.length > 0 
+        ? playlist.songs.reduce((sum, song) => 
+            sum + ((song.upvotes || 0) - (song.downvotes || 0)), 0) / playlist.songs.length
+        : 0
+    }
+  }
+
+  if (loading) return (
+    <div style={{ 
+      textAlign: 'center', 
+      marginTop: '3rem', 
+      color: colors.text 
+    }}>
+      Loading...
+    </div>
+  )
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ 
+      padding: 'clamp(1rem, 3vw, 2rem)', 
+      maxWidth: '1200px', 
+      margin: '0 auto', 
+      fontFamily: 'Arial, sans-serif',
+      minHeight: '100vh'
+    }}>
+      {/* Header */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
         marginBottom: '2rem',
-        borderBottom: '2px solid #1DB954',
-        paddingBottom: '1rem'
+        flexWrap: 'wrap',
+        gap: '1rem'
       }}>
-        <h1 style={{ color: '#1DB954', margin: 0 }}>PlayMusicNow Dashboard</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontWeight: 'bold' }}>Welcome, {user.name}!</span>
-          <button 
-            onClick={logout} 
-            style={{ 
+        <div>
+          <h1 style={{ color: colors.primary, marginBottom: '0.5rem' }}>
+            Welcome back, {user?.name}! 🎵
+          </h1>
+          <p style={{ color: colors.textSecondary, margin: 0 }}>
+            Manage your collaborative playlists
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <button
+            onClick={toggleTheme}
+            style={{
+              backgroundColor: colors.surface,
+              color: colors.text,
+              border: `1px solid ${colors.border}`,
+              borderRadius: '8px',
               padding: '0.5rem 1rem',
-              backgroundColor: '#f44336',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {isDark ? '☀️ Light' : '🌙 Dark'}
+          </button>
+          <button 
+            onClick={logout}
+            style={{
+              backgroundColor: '#666',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
               cursor: 'pointer'
             }}
           >
@@ -148,36 +213,54 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Collaborative Playlists Section */}
       <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ color: '#333' }}>Your Collaborative Playlists</h2>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '1rem',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <h2 style={{ color: colors.text, margin: 0 }}>Your Collaborative Playlists</h2>
           <button 
             onClick={() => setShowCreateForm(!showCreateForm)}
             style={{
-              backgroundColor: '#1DB954',
+              backgroundColor: colors.primary,
               color: 'white',
               border: 'none',
               padding: '1rem 2rem',
               borderRadius: '8px',
               cursor: 'pointer',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              transition: 'all 0.3s ease'
             }}
+            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
           >
             + Create New Playlist
           </button>
         </div>
 
+        {/* Create Form */}
         {showCreateForm && (
           <div style={{ 
-            backgroundColor: '#f9f9f9', 
+            backgroundColor: colors.surface, 
             padding: '2rem', 
-            borderRadius: '8px', 
+            borderRadius: '12px', 
             marginBottom: '2rem',
-            border: '1px solid #ddd'
+            border: `1px solid ${colors.border}`,
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
           }}>
-            <h3>Create Collaborative Playlist</h3>
+            <h3 style={{ color: colors.text, marginBottom: '1rem' }}>Create Collaborative Playlist</h3>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+              <label style={{ 
+                display: 'block', 
+                marginBottom: '0.5rem', 
+                fontWeight: 'bold',
+                color: colors.text
+              }}>
                 Playlist Name:
               </label>
               <input 
@@ -187,15 +270,22 @@ export default function Dashboard() {
                 style={{ 
                   width: '100%', 
                   padding: '0.8rem', 
-                  border: '1px solid #ddd',
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '4px',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  backgroundColor: colors.background,
+                  color: colors.text
                 }}
                 placeholder="Enter playlist name"
               />
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+              <label style={{ 
+                display: 'block', 
+                marginBottom: '0.5rem', 
+                fontWeight: 'bold',
+                color: colors.text
+              }}>
                 Description:
               </label>
               <textarea 
@@ -204,19 +294,22 @@ export default function Dashboard() {
                 style={{ 
                   width: '100%', 
                   padding: '0.8rem', 
-                  border: '1px solid #ddd',
+                  border: `1px solid ${colors.border}`,
                   borderRadius: '4px',
                   fontSize: '1rem',
-                  minHeight: '80px'
+                  minHeight: '80px',
+                  backgroundColor: colors.background,
+                  color: colors.text,
+                  resize: 'vertical'
                 }}
                 placeholder="Enter description (optional)"
               />
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <button 
                 onClick={createCollaborativePlaylist}
                 style={{
-                  backgroundColor: '#1DB954',
+                  backgroundColor: colors.primary,
                   color: 'white',
                   border: 'none',
                   padding: '0.8rem 1.5rem',
@@ -244,54 +337,73 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
-          {collaborativePlaylists.map(playlist => (
-            <div key={playlist.id} style={{ 
-              border: '1px solid #ddd', 
-              padding: '1.5rem', 
-              borderRadius: '12px',
-              backgroundColor: 'white',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-              <h3 style={{ color: '#1DB954', marginBottom: '0.5rem' }}>{playlist.name}</h3>
-              <p style={{ color: '#666', marginBottom: '1rem' }}>{playlist.description}</p>
-              <p style={{ fontSize: '0.9em', color: '#999', marginBottom: '1rem' }}>
-                Created by {playlist.createdBy} • {playlist.songs.length} songs
-              </p>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <button 
-                  onClick={() => copyShareLink(playlist.shareLink)}
-                  style={{ 
-                    backgroundColor: '#1DB954', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '0.6rem 1rem',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  📋 Copy Share Link
-                </button>
-                <button 
-                  onClick={() => navigate(`/playlist/${playlist.id}`)}
-                  style={{ 
-                    backgroundColor: '#1976d2', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '0.6rem 1rem',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  🎵 Manage Songs
-                </button>
-                {playlist.spotifyId ? (
+        {/* Playlists Grid */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
+          gap: '1.5rem' 
+        }}>
+          {collaborativePlaylists.map(playlist => {
+            const analytics = getPlaylistAnalytics(playlist)
+            return (
+              <div key={playlist.id} style={{ 
+                border: `1px solid ${colors.border}`, 
+                padding: '1.5rem', 
+                borderRadius: '12px',
+                backgroundColor: colors.card,
+                boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease'
+              }}>
+                <h3 style={{ color: colors.primary, marginBottom: '0.5rem' }}>
+                  {playlist.name}
+                </h3>
+                <p style={{ color: colors.textSecondary, marginBottom: '1rem' }}>
+                  {playlist.description}
+                </p>
+                
+                {/* Analytics */}
+                <div style={{ 
+                  backgroundColor: colors.surface,
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  marginBottom: '1rem'
+                }}>
+                  <h4 style={{ color: colors.text, fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                    📊 Analytics
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem' }}>
+                    <span style={{ color: colors.textSecondary }}>Songs: {analytics.totalSongs}</span>
+                    <span style={{ color: colors.textSecondary }}>Contributors: {analytics.contributors}</span>
+                    <span style={{ color: colors.textSecondary }}>Total Votes: {analytics.totalVotes}</span>
+                    <span style={{ color: colors.textSecondary }}>Avg Score: {analytics.avgScore.toFixed(1)}</span>
+                  </div>
+                </div>
+
+                <p style={{ fontSize: '0.9em', color: colors.textSecondary, marginBottom: '1rem' }}>
+                  Created by {playlist.createdBy}
+                </p>
+                
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button 
-                    onClick={() => window.open(`https://open.spotify.com/playlist/${playlist.spotifyId}`, '_blank')}
+                    onClick={() => copyShareLink(playlist.shareLink)}
                     style={{ 
-                      backgroundColor: '#1DB954', 
+                      backgroundColor: colors.primary, 
+                      color: 'white', 
+                      border: 'none', 
+                      padding: '0.6rem 1rem',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      flex: '1',
+                      minWidth: '120px'
+                    }}
+                  >
+                    📋 Copy Link
+                  </button>
+                  <button 
+                    onClick={() => setShowQRCode(showQRCode === playlist.id ? null : playlist.id)}
+                    style={{ 
+                      backgroundColor: '#2196F3', 
                       color: 'white', 
                       border: 'none', 
                       padding: '0.6rem 1rem',
@@ -300,13 +412,12 @@ export default function Dashboard() {
                       fontSize: '0.9rem'
                     }}
                   >
-                    ▶️ Play on Spotify
+                    📱 QR
                   </button>
-                ) : (
                   <button 
-                    onClick={() => syncToSpotify(playlist)}
+                    onClick={() => navigate(`/playlist/${playlist.id}`)}
                     style={{ 
-                      backgroundColor: '#ff9800', 
+                      backgroundColor: '#FF9800', 
                       color: 'white', 
                       border: 'none', 
                       padding: '0.6rem 1rem',
@@ -315,42 +426,108 @@ export default function Dashboard() {
                       fontSize: '0.9rem'
                     }}
                   >
-                    🔄 Sync to Spotify
+                    🎵 View
                   </button>
+                </div>
+
+                {/* QR Code */}
+                {showQRCode === playlist.id && (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    backgroundColor: colors.surface,
+                    borderRadius: '8px'
+                  }}>
+                    <img 
+                      src={generateQRCode(playlist.shareLink)} 
+                      alt="QR Code"
+                      style={{ maxWidth: '150px', height: 'auto' }}
+                    />
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', color: colors.textSecondary }}>
+                      Scan to share playlist
+                    </p>
+                  </div>
                 )}
+
+                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {!playlist.spotifyId ? (
+                    <button 
+                      onClick={() => syncToSpotify(playlist)}
+                      style={{ 
+                        backgroundColor: '#FF6B35', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '0.6rem 1rem',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        flex: '1'
+                      }}
+                    >
+                      🔄 Sync to Spotify
+                    </button>
+                  ) : (
+                    <a 
+                      href={`https://open.spotify.com/playlist/${playlist.spotifyId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ 
+                        backgroundColor: colors.primary, 
+                        color: 'white', 
+                        textDecoration: 'none',
+                        padding: '0.6rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.9rem',
+                        display: 'block',
+                        textAlign: 'center',
+                        flex: '1'
+                      }}
+                    >
+                      ▶️ Play on Spotify
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {collaborativePlaylists.length === 0 && (
           <div style={{ 
             textAlign: 'center', 
             padding: '3rem', 
-            color: '#666',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-            border: '1px solid #ddd'
+            color: colors.textSecondary,
+            backgroundColor: colors.surface,
+            borderRadius: '12px',
+            border: `1px solid ${colors.border}`
           }}>
-            <h3>No collaborative playlists yet</h3>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎵</div>
+            <h3 style={{ color: colors.text }}>No collaborative playlists yet</h3>
             <p>Create your first playlist to start collaborating with friends!</p>
           </div>
         )}
       </div>
 
+      {/* Spotify Playlists Section */}
       <div style={{ marginTop: '3rem' }}>
-        <h2 style={{ color: '#333', marginBottom: '1rem' }}>Your Spotify Playlists</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+        <h2 style={{ color: colors.text, marginBottom: '1rem' }}>Your Spotify Playlists</h2>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+          gap: '1rem' 
+        }}>
           {playlists.map(playlist => (
             <div key={playlist.id} style={{ 
-              border: '1px solid #ddd', 
+              border: `1px solid ${colors.border}`, 
               padding: '1rem', 
               borderRadius: '8px',
-              backgroundColor: '#f9f9f9'
+              backgroundColor: colors.surface,
+              transition: 'all 0.3s ease'
             }}>
-              <h3 style={{ marginBottom: '0.5rem' }}>{playlist.name}</h3>
-              <p style={{ color: '#666', marginBottom: '1rem' }}>{playlist.description}</p>
-              <p style={{ fontSize: '0.9em', color: '#999' }}>{playlist.tracks} tracks</p>
+              <h3 style={{ marginBottom: '0.5rem', color: colors.text }}>{playlist.name}</h3>
+              <p style={{ color: colors.textSecondary, marginBottom: '1rem' }}>{playlist.description}</p>
+              <p style={{ fontSize: '0.9em', color: colors.textSecondary }}>{playlist.tracks} tracks</p>
             </div>
           ))}
         </div>
