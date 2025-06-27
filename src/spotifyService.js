@@ -1,7 +1,6 @@
 
 // Spotify API service
 const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6' // Your actual client ID
-const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET || ''
 
 class SpotifyService {
   constructor() {
