@@ -521,26 +521,6 @@ export default function PlaylistView() {
                       userVote={userVotes[song.id]}
                     />
                   </div>
-                  <button 
-                    onClick={() => {
-                      if (song.external_urls && song.external_urls.spotify) {
-                        window.open(song.external_urls.spotify, '_blank')
-                      } else {
-                        alert('Spotify link not available for this song')
-                      }
-                    }}
-                    style={{
-                      backgroundColor: '#1976d2',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    ▶️ Play on Spotify
-                  </button>
                 </div>
               </div>
             ))}
