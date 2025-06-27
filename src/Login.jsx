@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { redirectToSpotifyAuth } from './spotifyAuth'
+import { redirectToSpotifyAuth } from './spotifyAuth.jsx'
 
 export default function Login() {
   const navigate = useNavigate()
