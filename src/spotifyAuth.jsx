@@ -1,6 +1,6 @@
 // spotifyAuth.js
 const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6'
-const REDIRECT_URI = 'https://9fe0977a-b4bf-48bf-8b13-6bcd9346a519-00-1e6x1v6l0g0b1.worf.replit.dev/callback'
+const REDIRECT_URI = `${window.location.origin}/callback`
 
 const SCOPES = [
   'user-read-private',
