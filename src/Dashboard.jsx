@@ -79,6 +79,38 @@ export default function Dashboard() {
     alert('Share link copied to clipboard!')
   }
 
+  const syncToSpotify = async (playlist) => {
+    try {
+      const spotifyService = new SpotifyService()
+      
+      // Create Spotify playlist
+      const spotifyPlaylist = await spotifyService.createPlaylist(
+        playlist.name,
+        `${playlist.description} (Synced from PlayMusicNow)`
+      )
+      
+      // Add tracks to Spotify playlist if there are any
+      if (playlist.songs.length > 0) {
+        const trackUris = playlist.songs.map(song => song.uri).filter(uri => uri)
+        if (trackUris.length > 0) {
+          await spotifyService.addTracksToPlaylist(spotifyPlaylist.id, trackUris)
+        }
+      }
+      
+      // Update local playlist with Spotify ID
+      const updated = collaborativePlaylists.map(p => 
+        p.id === playlist.id ? { ...p, spotifyId: spotifyPlaylist.id } : p
+      )
+      setCollaborativePlaylists(updated)
+      localStorage.setItem('collaborativePlaylists', JSON.stringify(updated))
+      
+      alert(`Playlist "${playlist.name}" synced to Spotify! You can now play it on Spotify.`)
+    } catch (error) {
+      console.error('Error syncing to Spotify:', error)
+      alert('Error syncing to Spotify. Please try again.')
+    }
+  }
+
   const logout = () => {
     localStorage.removeItem('spotifyAuthCode')
     localStorage.removeItem('code_verifier')
@@ -255,6 +287,37 @@ export default function Dashboard() {
                 >
                   🎵 Manage Songs
                 </button>
+                {playlist.spotifyId ? (
+                  <button 
+                    onClick={() => window.open(`https://open.spotify.com/playlist/${playlist.spotifyId}`, '_blank')}
+                    style={{ 
+                      backgroundColor: '#1DB954', 
+                      color: 'white', 
+                      border: 'none', 
+                      padding: '0.6rem 1rem',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    ▶️ Play on Spotify
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => syncToSpotify(playlist)}
+                    style={{ 
+                      backgroundColor: '#ff9800', 
+                      color: 'white', 
+                      border: 'none', 
+                      padding: '0.6rem 1rem',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    🔄 Sync to Spotify
+                  </button>
+                )}
               </div>
             </div>
           ))}

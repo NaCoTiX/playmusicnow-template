@@ -53,7 +53,7 @@ export default function PlaylistView() {
     return `${minutes}:${seconds.padStart(2, '0')}`
   }
 
-  const addSongToPlaylist = (song) => {
+  const addSongToPlaylist = async (song) => {
     if (!playlist) return
 
     const newSong = {
@@ -78,7 +78,20 @@ export default function PlaylistView() {
     }
 
     setPlaylist(updatedPlaylist)
-    alert(`Added "${song.name}" to the playlist!`)
+
+    // Auto-sync to Spotify if playlist is already synced
+    if (playlist.spotifyId && song.uri) {
+      try {
+        const spotifyService = new SpotifyService()
+        await spotifyService.addTracksToPlaylist(playlist.spotifyId, [song.uri])
+        alert(`Added "${song.name}" to the playlist and synced to Spotify!`)
+      } catch (error) {
+        console.error('Error syncing to Spotify:', error)
+        alert(`Added "${song.name}" to the playlist, but failed to sync to Spotify.`)
+      }
+    } else {
+      alert(`Added "${song.name}" to the playlist!`)
+    }
   }
 
   if (loading) {
@@ -129,6 +142,19 @@ export default function PlaylistView() {
         <p style={{ color: '#666', marginBottom: '1rem' }}>{playlist.description}</p>
         <p style={{ fontSize: '0.9rem', color: '#999' }}>
           Created by {playlist.createdBy} • {playlist.songs.length} songs
+          {playlist.spotifyId && (
+            <span>
+              {' • '}
+              <a 
+                href={`https://open.spotify.com/playlist/${playlist.spotifyId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#1DB954', textDecoration: 'none' }}
+              >
+                ▶️ Play on Spotify
+              </a>
+            </span>
+          )}
         </p>
         <div style={{ 
           backgroundColor: '#e3f2fd', 
@@ -278,15 +304,24 @@ export default function PlaylistView() {
                   Added by {song.addedBy} on {new Date(song.addedAt).toLocaleDateString()}
                 </p>
               </div>
-              <button style={{
-                backgroundColor: '#1976d2',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}>
-                ▶️ Play
+              <button 
+                onClick={() => {
+                  if (song.external_urls && song.external_urls.spotify) {
+                    window.open(song.external_urls.spotify, '_blank')
+                  } else {
+                    alert('Spotify link not available for this song')
+                  }
+                }}
+                style={{
+                  backgroundColor: '#1976d2',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                ▶️ Play on Spotify
               </button>
             </div>
           ))
