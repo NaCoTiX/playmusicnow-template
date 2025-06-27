@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import SpotifyService from './spotifyService.js'
 
 export default function PlaylistView() {
   const { playlistId } = useParams()
@@ -23,22 +24,33 @@ export default function PlaylistView() {
     setLoading(false)
   }, [playlistId])
 
-  const searchSpotify = () => {
+  const searchSpotify = async () => {
     if (!searchTerm.trim()) return
 
-    // Simulate Spotify search results
-    const mockResults = [
-      { id: '1', name: 'Blinding Lights', artist: 'The Weeknd', duration: '3:20' },
-      { id: '2', name: 'Good 4 U', artist: 'Olivia Rodrigo', duration: '2:58' },
-      { id: '3', name: 'Stay', artist: 'The Kid LAROI, Justin Bieber', duration: '2:21' },
-      { id: '4', name: 'Levitating', artist: 'Dua Lipa', duration: '3:23' },
-      { id: '5', name: 'Peaches', artist: 'Justin Bieber ft. Daniel Caesar, Giveon', duration: '3:18' }
-    ].filter(song => 
-      song.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    
-    setSearchResults(mockResults)
+    try {
+      const spotifyService = new SpotifyService()
+      const searchData = await spotifyService.searchTracks(searchTerm)
+      
+      const results = searchData.tracks.items.map(track => ({
+        id: track.id,
+        name: track.name,
+        artist: track.artists.map(a => a.name).join(', '),
+        duration: formatDuration(track.duration_ms),
+        uri: track.uri,
+        external_urls: track.external_urls
+      }))
+      
+      setSearchResults(results)
+    } catch (error) {
+      console.error('Error searching Spotify:', error)
+      alert('Error searching Spotify. Please try again.')
+    }
+  }
+
+  const formatDuration = (ms) => {
+    const minutes = Math.floor(ms / 60000)
+    const seconds = ((ms % 60000) / 1000).toFixed(0)
+    return `${minutes}:${seconds.padStart(2, '0')}`
   }
 
   const addSongToPlaylist = (song) => {

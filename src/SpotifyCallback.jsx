@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import SpotifyService from './spotifyService.js'
 
 export default function SpotifyCallback() {
   const navigate = useNavigate()
@@ -16,10 +17,14 @@ export default function SpotifyCallback() {
           throw new Error('Authorization code not found in callback URL')
         }
 
-        // Store code for backend token exchange (PKCE step 2)
+        // Exchange code for access token
+        const spotifyService = new SpotifyService()
+        await spotifyService.exchangeCodeForToken(code)
+
+        // Store code for reference
         localStorage.setItem('spotifyAuthCode', code)
 
-        // Optionally: Clean the URL to just '/' (remove code query)
+        // Clean the URL
         window.history.replaceState({}, document.title, '/')
 
         // Redirect to dashboard after successful auth

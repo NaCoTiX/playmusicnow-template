@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import SpotifyService from './spotifyService.js'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -13,26 +14,41 @@ export default function Dashboard() {
   const [newPlaylistDescription, setNewPlaylistDescription] = useState('')
 
   useEffect(() => {
-    const authCode = localStorage.getItem('spotifyAuthCode')
-    if (!authCode) {
+    const spotifyService = new SpotifyService()
+    
+    if (!spotifyService.isAuthenticated()) {
       navigate('/')
       return
     }
     
-    // Simulate loading user data and playlists
-    setUser({ name: 'Spotify User', id: 'user123' })
-    setPlaylists([
-      { id: '1', name: 'My Awesome Playlist', tracks: 25, description: 'My personal favorites' },
-      { id: '2', name: 'Chill Vibes', tracks: 18, description: 'Relaxing music' }
-    ])
-    
-    // Load collaborative playlists from localStorage
-    const saved = localStorage.getItem('collaborativePlaylists')
-    if (saved) {
-      setCollaborativePlaylists(JSON.parse(saved))
+    async function loadData() {
+      try {
+        // Load real user data and playlists
+        const userData = await spotifyService.getCurrentUser()
+        setUser({ name: userData.display_name, id: userData.id })
+        
+        const playlistData = await spotifyService.getUserPlaylists()
+        setPlaylists(playlistData.items.map(p => ({
+          id: p.id,
+          name: p.name,
+          tracks: p.tracks.total,
+          description: p.description || ''
+        })))
+        
+        // Load collaborative playlists from localStorage
+        const saved = localStorage.getItem('collaborativePlaylists')
+        if (saved) {
+          setCollaborativePlaylists(JSON.parse(saved))
+        }
+        
+        setLoading(false)
+      } catch (error) {
+        console.error('Error loading data:', error)
+        setLoading(false)
+      }
     }
     
-    setLoading(false)
+    loadData()
   }, [navigate])
 
   const createCollaborativePlaylist = () => {
