@@ -2,10 +2,14 @@ import React from 'react'
 import { redirectToSpotifyAuth } from './spotifyAuth'
 
 export default function Login() {
+  const handleLogin = () => {
+    redirectToSpotifyAuth()
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
+    <div style={{ textAlign: 'center', marginTop: '3rem' }}>
       <h1>PlayMusicNow</h1>
-      <button onClick={redirectToSpotifyAuth}>Login with Spotify</button>
+      <button onClick={handleLogin}>Connect to Spotify</button>
     </div>
   )
 }

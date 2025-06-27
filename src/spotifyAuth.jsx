@@ -1,5 +1,7 @@
-const CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID'
-const REDIRECT_URI = 'https://your-repl-name.username.repl.co/callback'
+// spotifyAuth.js
+const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6'
+const REDIRECT_URI = 'https://9fe0977a-b4bf-48bf-8b13-6bcd9346a519-00-1e6x1v6l0g0b1.worf.replit.dev/callback'
+
 const SCOPES = [
   'user-read-private',
   'user-read-email',
@@ -17,8 +19,8 @@ function generateRandomString(length) {
     .join('')
 }
 
-async function generateCodeChallenge(codeVerifier) {
-  const data = new TextEncoder().encode(codeVerifier)
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier)
   const digest = await crypto.subtle.digest('SHA-256', data)
   return btoa(String.fromCharCode(...new Uint8Array(digest)))
     .replace(/\+/g, '-')
