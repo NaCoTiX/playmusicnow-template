@@ -12,6 +12,7 @@ export default function SpotifyCallback() {
       try {
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
+        const state = params.get('state')
         const error = params.get('error')
 
         if (error) {
@@ -21,6 +22,14 @@ export default function SpotifyCallback() {
         if (!code) {
           throw new Error('Authorization code not found in callback URL')
         }
+
+        // Verify state parameter for security
+        const storedState = localStorage.getItem('spotify_auth_state')
+        if (state !== storedState) {
+          throw new Error('Invalid state parameter - possible CSRF attack')
+        }
+
+        localStorage.removeItem('spotify_auth_state')
 
         // Exchange code for access token
         const spotifyService = new SpotifyService()

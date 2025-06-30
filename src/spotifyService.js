@@ -25,6 +25,10 @@ class SpotifyService {
     this.refreshToken = localStorage.getItem('spotify_refresh_token')
   }
 
+  getRedirectURI() {
+    return getRedirectURI()
+  }
+
   async exchangeCodeForToken(code) {
     const verifier = localStorage.getItem('code_verifier')
 

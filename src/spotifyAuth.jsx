@@ -39,25 +39,16 @@ function generateRandomString(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   let result = ''
   
-  // Fallback for Safari iOS - use Math.random instead of crypto
-  if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
-    for (let i = 0; i < length; i++) {
-      result += charset.charAt(Math.floor(Math.random() * charset.length))
-    }
-    return result
-  }
-  
-  const array = new Uint8Array(length)
-  crypto.getRandomValues(array)
+  // Use Math.random for better compatibility across all devices
   for (let i = 0; i < length; i++) {
-    result += charset[array[i] % charset.length]
+    result += charset.charAt(Math.floor(Math.random() * charset.length))
   }
   return result
 }
 
 async function generateCodeChallenge(verifier) {
-  // Fallback for Safari iOS - skip PKCE if crypto.subtle not available
-  if (typeof crypto === 'undefined' || !crypto.subtle) {
+  // Check if crypto.subtle is available
+  if (typeof crypto === 'undefined' || !crypto.subtle || !window.TextEncoder) {
     return null
   }
   
@@ -76,31 +67,29 @@ async function generateCodeChallenge(verifier) {
 }
 
 export async function redirectToSpotifyAuth() {
-  const verifier = generateRandomString(128)
-  let challenge = null
+  const state = generateRandomString(16)
+  localStorage.setItem('spotify_auth_state', state)
   
-  // Try to generate code challenge, fallback gracefully
-  try {
-    challenge = await generateCodeChallenge(verifier)
-  } catch (error) {
-    console.warn('PKCE not supported on this device')
-  }
-
-  if (challenge) {
-    localStorage.setItem('code_verifier', verifier)
-  }
-
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: CLIENT_ID,
     scope: SCOPES.join(' '),
-    redirect_uri: REDIRECT_URI
+    redirect_uri: REDIRECT_URI,
+    state: state
   })
 
-  // Only add PKCE params if supported
-  if (challenge) {
-    params.append('code_challenge_method', 'S256')
-    params.append('code_challenge', challenge)
+  // Try to use PKCE if supported
+  try {
+    const verifier = generateRandomString(128)
+    const challenge = await generateCodeChallenge(verifier)
+    
+    if (challenge) {
+      localStorage.setItem('code_verifier', verifier)
+      params.append('code_challenge_method', 'S256')
+      params.append('code_challenge', challenge)
+    }
+  } catch (error) {
+    console.warn('PKCE not supported on this device, using basic flow')
   }
 
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`
