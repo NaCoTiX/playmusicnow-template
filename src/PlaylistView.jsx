@@ -96,6 +96,21 @@ export default function PlaylistView() {
 
     setPlaylist(updatedPlaylist)
 
+    // Clear search on mobile for better UX
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      setSearchResults([])
+      setSearchTerm('')
+    }
+
+    // Mobile-friendly success message
+    const successMessage = `🎉 Added "${song.name}" by ${song.artist} to the playlist!`
+    alert(successMessage)
+
+    // Scroll to top on mobile to see the updated playlist
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
     // Auto-sync to Spotify if playlist is already synced
     if (playlist.spotifyId && song.uri) {
       try {
@@ -387,60 +402,74 @@ export default function PlaylistView() {
             <h3 style={{ marginBottom: '1rem', color: colors.text }}>Search Results</h3>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {searchResults.map(song => (
-                <div key={song.id} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  padding: '1rem',
-                  backgroundColor: colors.card,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '6px',
-                  marginBottom: '0.5rem',
-                  flexWrap: 'wrap',
-                  gap: '1rem'
-                }}>
-                  <div style={{ flex: '1', minWidth: '200px' }}>
-                    <h4 style={{ margin: 0, color: colors.text }}>{song.name}</h4>
-                    <p style={{ margin: 0, color: colors.textSecondary, fontSize: '0.9rem' }}>
-                      {song.artist} • {song.duration}
-                    </p>
-                    {song.popularity && (
-                      <div style={{ 
-                        fontSize: '0.8rem', 
-                        color: colors.textSecondary,
-                        marginTop: '0.2rem'
-                      }}>
-                        Popularity: {song.popularity}/100
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    {song.preview_url && (
-                      <audio 
-                        controls 
-                        style={{ width: '150px', height: '30px' }}
-                        preload="none"
-                      >
-                        <source src={song.preview_url} type="audio/mpeg" />
-                      </audio>
-                    )}
-                    <button 
-                      onClick={() => addSongToPlaylist(song)}
-                      style={{
-                        backgroundColor: colors.primary,
-                        color: 'white',
-                        border: 'none',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      + Add
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div key={song.id} style={{ 
+              border: `1px solid ${colors.border}`, 
+              padding: '1rem', 
+              borderRadius: '8px',
+              backgroundColor: colors.card,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '1rem',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ flex: '1', minWidth: '200px' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', color: colors.text }}>{song.name}</h4>
+                <p style={{ margin: 0, color: colors.textSecondary, fontSize: '0.9rem' }}>
+                  {song.artist} • {song.duration}
+                </p>
+                {song.popularity && (
+                  <p style={{ margin: '0.25rem 0 0 0', color: colors.textSecondary, fontSize: '0.8rem' }}>
+                    Popularity: {song.popularity}/100
+                  </p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                {song.preview_url && (
+                  <audio controls style={{ height: '32px', width: 'auto' }}>
+                    <source src={song.preview_url} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                )}
+                <button 
+                  onClick={() => addSongToPlaylist(song)}
+                  style={{
+                    backgroundColor: colors.primary,
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    minWidth: '120px'
+                  }}
+                >
+                  ➕ Add Song
+                </button>
+                {/* Only show Spotify link on desktop or when explicitly requested */}
+                {!(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) && (
+                  <a 
+                    href={song.external_urls.spotify}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      backgroundColor: '#1DB954',
+                      color: 'white',
+                      textDecoration: 'none',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '4px',
+                      fontSize: '0.9rem',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    🎵 Spotify
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
             </div>
           </div>
         )}

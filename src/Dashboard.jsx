@@ -181,7 +181,33 @@ export default function Dashboard() {
             Manage your collaborative playlists
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: 'SpotMusic.xyz - Collaborative Playlists',
+                  text: 'Create collaborative playlists that anyone can contribute to!',
+                  url: window.location.origin
+                })
+              } else {
+                navigator.clipboard.writeText(window.location.origin)
+                alert('Website link copied to clipboard! Share it with friends.')
+              }
+            }}
+            style={{
+              backgroundColor: '#FF6B35',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              fontWeight: 'bold'
+            }}
+          >
+            📤 Share App
+          </button>
           <button
             onClick={toggleTheme}
             style={{
