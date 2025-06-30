@@ -12,6 +12,11 @@ export default function SpotifyCallback() {
       try {
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
+        const error = params.get('error')
+
+        if (error) {
+          throw new Error(`Spotify authorization failed: ${error}`)
+        }
 
         if (!code) {
           throw new Error('Authorization code not found in callback URL')
@@ -30,7 +35,7 @@ export default function SpotifyCallback() {
         // Redirect to dashboard after successful auth
         navigate('/dashboard')
       } catch (err) {
-        console.error(err)
+        console.error('Spotify callback error:', err)
         setError(err.message)
       } finally {
         setLoading(false)
