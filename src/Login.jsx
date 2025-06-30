@@ -113,6 +113,11 @@ export default function Login() {
               <h3 style={{ color: colors.text, marginBottom: '0.5rem' }}>3. Share & collaborate</h3>
               <p style={{ color: colors.textSecondary, fontSize: '0.9rem' }}>Share with friends to collaborate</p>
             </div>
+            <div style={{ textAlign: 'center', padding: '1rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+              <h3 style={{ color: colors.text, marginBottom: '0.5rem' }}>4. What do we do with your data?</h3>
+              <p style={{ color: colors.textSecondary, fontSize: '0.9rem' }}>Nothing. No data is stored at all.</p>
+            </div>
           </div>
         </div>
 
