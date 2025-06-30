@@ -77,7 +77,7 @@ export default function Login() {
           fontWeight: 'bold',
           textShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}>
-          🎵 PlayMusicNow
+          🎵 SpotMusic.xyz
         </h1>
         <p style={{ 
           fontSize: 'clamp(1rem, 3vw, 1.3rem)', 
@@ -85,7 +85,7 @@ export default function Login() {
           color: colors.textSecondary,
           lineHeight: '1.6'
         }}>
-          Create collaborative playlists that anyone can contribute to
+          Create collaborative playlists that anyone can contribute to</p>
         </p>
 
         <div style={{ marginBottom: '3rem' }}>

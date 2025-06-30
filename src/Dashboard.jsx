@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
@@ -18,18 +17,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     const spotifyService = new SpotifyService()
-    
+
     if (!spotifyService.isAuthenticated()) {
       navigate('/')
       return
     }
-    
+
     async function loadData() {
       try {
         // Load real user data and playlists
         const userData = await spotifyService.getCurrentUser()
         setUser({ name: userData.display_name, id: userData.id })
-        
+
         const playlistData = await spotifyService.getUserPlaylists()
         setPlaylists(playlistData.items.map(p => ({
           id: p.id,
@@ -37,20 +36,20 @@ export default function Dashboard() {
           tracks: p.tracks.total,
           description: p.description || ''
         })))
-        
+
         // Load collaborative playlists from localStorage
         const saved = localStorage.getItem('collaborativePlaylists')
         if (saved) {
           setCollaborativePlaylists(JSON.parse(saved))
         }
-        
+
         setLoading(false)
       } catch (error) {
         console.error('Error loading data:', error)
         setLoading(false)
       }
     }
-    
+
     loadData()
   }, [navigate])
 
@@ -71,11 +70,11 @@ export default function Dashboard() {
         activityTimeline: []
       }
     }
-    
+
     const updated = [...collaborativePlaylists, newPlaylist]
     setCollaborativePlaylists(updated)
     localStorage.setItem('collaborativePlaylists', JSON.stringify(updated))
-    
+
     setNewPlaylistName('')
     setNewPlaylistDescription('')
     setShowCreateForm(false)
@@ -94,13 +93,13 @@ export default function Dashboard() {
   const syncToSpotify = async (playlist) => {
     try {
       const spotifyService = new SpotifyService()
-      
+
       // Create Spotify playlist
       const spotifyPlaylist = await spotifyService.createPlaylist(
         playlist.name,
         `${playlist.description} (Synced from PlayMusicNow)`
       )
-      
+
       // Add tracks to Spotify playlist if there are any
       if (playlist.songs.length > 0) {
         const trackUris = playlist.songs.map(song => song.uri).filter(uri => uri)
@@ -108,14 +107,14 @@ export default function Dashboard() {
           await spotifyService.addTracksToPlaylist(spotifyPlaylist.id, trackUris)
         }
       }
-      
+
       // Update local playlist with Spotify ID
       const updated = collaborativePlaylists.map(p => 
         p.id === playlist.id ? { ...p, spotifyId: spotifyPlaylist.id } : p
       )
       setCollaborativePlaylists(updated)
       localStorage.setItem('collaborativePlaylists', JSON.stringify(updated))
-      
+
       alert(`Playlist "${playlist.name}" synced to Spotify! You can now play it on Spotify.`)
     } catch (error) {
       console.error('Error syncing to Spotify:', error)
@@ -135,7 +134,7 @@ export default function Dashboard() {
     const totalVotes = playlist.songs.reduce((sum, song) => 
       (song.upvotes || 0) + (song.downvotes || 0) + sum, 0
     )
-    
+
     return {
       contributors: uniqueContributors,
       totalSongs: playlist.songs.length,
@@ -360,7 +359,7 @@ export default function Dashboard() {
                 <p style={{ color: colors.textSecondary, marginBottom: '1rem' }}>
                   {playlist.description}
                 </p>
-                
+
                 {/* Analytics */}
                 <div style={{ 
                   backgroundColor: colors.surface,
@@ -382,7 +381,7 @@ export default function Dashboard() {
                 <p style={{ fontSize: '0.9em', color: colors.textSecondary, marginBottom: '1rem' }}>
                   Created by {playlist.createdBy}
                 </p>
-                
+
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button 
                     onClick={() => copyShareLink(playlist.shareLink)}

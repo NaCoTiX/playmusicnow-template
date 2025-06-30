@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
@@ -26,13 +25,13 @@ export default function PlaylistView() {
         setPlaylist(found)
       }
     }
-    
+
     // Load user votes
     const savedVotes = localStorage.getItem(`votes_${playlistId}`)
     if (savedVotes) {
       setUserVotes(JSON.parse(savedVotes))
     }
-    
+
     setLoading(false)
   }, [playlistId])
 
@@ -42,7 +41,7 @@ export default function PlaylistView() {
     try {
       const spotifyService = new SpotifyService()
       const searchData = await spotifyService.searchTracks(searchTerm)
-      
+
       const results = searchData.tracks.items.map(track => ({
         id: track.id,
         name: track.name,
@@ -53,7 +52,7 @@ export default function PlaylistView() {
         preview_url: track.preview_url,
         popularity: track.popularity
       }))
-      
+
       setSearchResults(results)
     } catch (error) {
       console.error('Error searching Spotify:', error)
@@ -159,9 +158,9 @@ export default function PlaylistView() {
 
   const getSortedSongs = () => {
     if (!playlist?.songs) return []
-    
+
     const songs = [...playlist.songs]
-    
+
     switch (sortBy) {
       case 'votes':
         return songs.sort((a, b) => 
@@ -242,7 +241,7 @@ export default function PlaylistView() {
         >
           ← Back to Home
         </button>
-        
+
         <h1 style={{ 
           color: colors.primary, 
           marginBottom: '0.5rem',
@@ -278,7 +277,7 @@ export default function PlaylistView() {
             </>
           )}
         </div>
-        
+
         {/* Share Section */}
         <div style={{ 
           backgroundColor: colors.surface, 
@@ -514,7 +513,7 @@ export default function PlaylistView() {
                     <p style={{ margin: '0.2rem 0 0 0', color: colors.textSecondary, fontSize: '0.8rem' }}>
                       Added by {song.addedBy} on {new Date(song.addedAt).toLocaleDateString()}
                     </p>
-                    
+
                     <VotingSystem 
                       song={song}
                       onVote={handleVote}
