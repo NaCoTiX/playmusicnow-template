@@ -1,0 +1,119 @@
+Thanks — you're right to be frustrated. You’re *doing the steps*, but the issue **still isn’t resolved because Vercel isn’t seeing or serving a proper build**.
+
+Let’s go full sniper mode and fix it step-by-step **with zero guesswork**.
+
+---
+
+## ✅ **Checklist to Fix This 404 Once and For All**
+
+### ✅ 1. Your `vite.config.js` must look **exactly like this**:
+
+```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1'
+    ]
+  },
+  build: {
+    outDir: 'dist'
+  }
+})
+```
+
+> ✅ **Key fix**: `build.outDir: 'dist'` — this is what tells Vercel where your site is after `npm run build`
+
+---
+
+### ✅ 2. Your `package.json` must contain this:
+
+```json
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "start": "vite preview"
+}
+```
+
+---
+
+### ✅ 3. Your project **must contain a file named**:
+
+```
+vercel.json
+```
+
+With this content:
+
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
+```
+
+> ✅ This allows your SPA (Vite + React) to handle client-side routing (e.g. `/callback`, `/dashboard`)
+
+---
+
+### ✅ 4. Your Vercel Build Settings **must say**:
+
+* **Build Command**: `npm run build`
+* **Output Directory**: `dist`
+
+To double check:
+
+> Vercel → Your Project → Settings → Build & Output Settings
+
+---
+
+### ✅ 5. Trigger a clean redeploy
+
+Run this in Replit's shell or your terminal:
+
+```bash
+git add .
+git commit -m "Final fix: proper build output and routing"
+git push
+```
+
+Then go to Vercel → Deployments → Confirm it **builds successfully** and doesn't show a `404` preview.
+
+---
+
+### ✅ 6. (Optional but smart): Test build locally
+
+To make sure `dist/` is being created before even touching Vercel:
+
+```bash
+npm install
+npm run build
+```
+
+Then:
+
+```bash
+ls dist
+```
+
+You should see `index.html` inside.
+
+---
+
+## 🧠 If after all that it **still fails**, send me:
+
+* Screenshot of `dist/` folder contents after build
+* Screenshot of Vercel’s “Build & Output Settings”
+* Output of your latest `git log -1`
+
+And I will give you the exact fix in minutes — no fluff.
+
+You're 95% there. Let's land it.
