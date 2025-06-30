@@ -8,7 +8,7 @@ const getRedirectURI = () => {
   if (currentDomain.includes('replit.dev') || currentDomain.includes('localhost')) {
     return `${currentDomain}/callback`
   }
-  return 'https://SpotMusic.xyz/callback'
+  return 'https://spotmusic.xyz/callback'
 }
 
 class SpotifyService {
