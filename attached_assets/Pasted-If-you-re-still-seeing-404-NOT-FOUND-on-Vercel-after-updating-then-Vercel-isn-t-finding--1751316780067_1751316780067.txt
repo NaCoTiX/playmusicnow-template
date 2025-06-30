@@ -1,0 +1,116 @@
+If you’re **still seeing `404: NOT_FOUND`** on Vercel *after updating*, then **Vercel isn’t finding your built app output**. Let's fix this step-by-step with zero fluff.
+
+---
+
+## ✅ What This Means (No Jargon)
+
+Vercel deployed your project, but when someone visits the site:
+
+* **There's no `index.html` in the `dist` folder** to serve
+* Or Vercel is **not looking in the right folder**
+
+---
+
+## 🧨 Most Likely Causes:
+
+1. You're using **Vite**, but the `dist/` folder wasn’t built properly
+2. Vercel wasn’t told to **use `dist/`** as the output
+3. The `build` command wasn’t triggered
+
+---
+
+## 🛠️ Step-by-Step Fix (Final)
+
+### 1. ✅ Confirm You Have a Build
+
+On your local machine or in Replit, run:
+
+```bash
+npm install
+npm run build
+```
+
+You should now see a **`dist/` folder** with an `index.html` inside.
+
+---
+
+### 2. ✅ Check `package.json`
+
+```json
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "start": "vite preview"
+}
+```
+
+### 3. ✅ Check `vite.config.js`
+
+```js
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  build: {
+    outDir: 'dist',
+  }
+})
+```
+
+---
+
+### 4. ✅ Update Vercel Settings
+
+Go to **Vercel → Project → Settings → Build & Output Settings**, and make sure these are set:
+
+* **Build command**: `npm run build`
+* **Output directory**: `dist`
+
+If they aren’t set or are blank, that’s why you’re getting the 404.
+
+---
+
+### 5. ✅ (If SPA) Add `vercel.json`
+
+If you’re building a single-page app (e.g., using Spotify auth):
+
+Create `vercel.json` at the root of your project:
+
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
+```
+
+This fixes any route mismatches (e.g., visiting `/callback` doesn’t 404).
+
+---
+
+### 6. 🔁 Push the Fix
+
+```bash
+git add .
+git commit -m "Fix Vercel build config"
+git push
+```
+
+---
+
+### 7. 🚀 Redeploy
+
+Vercel will auto-deploy. OR go into Vercel → Deployments → click **“Redeploy”** on the latest commit.
+
+---
+
+### ✅ Done right = You’ll now see your site, not a 404.
+
+---
+
+**If it still fails after all this**, paste me:
+
+* Your full `vite.config.js`
+* Your `package.json`
+* A screenshot of your Vercel "Build & Output" settings
+
+I’ll tell you exactly what’s broken and how to fix it in 2 mins.
