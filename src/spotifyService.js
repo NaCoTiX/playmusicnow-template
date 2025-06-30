@@ -1,25 +1,25 @@
-
-// Spotify API service
-const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6' // Your actual client ID
-
-// Use dynamic redirect URI based on current domain
-const getRedirectURI = () => {
-  const currentDomain = window.location.origin
-  if (currentDomain.includes('replit.dev') || currentDomain.includes('localhost')) {
-    return `${currentDomain}/callback`
-  }
-  return 'https://spotmusic.xyz/callback'
-}
-
-class SpotifyService {
+export default class SpotifyService {
   constructor() {
+    this.CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6'
     this.accessToken = localStorage.getItem('spotify_access_token')
     this.refreshToken = localStorage.getItem('spotify_refresh_token')
   }
 
   async exchangeCodeForToken(code) {
-    const codeVerifier = localStorage.getItem('code_verifier')
-    
+    const verifier = localStorage.getItem('code_verifier')
+
+    if (!verifier) {
+      throw new Error('Code verifier not found')
+    }
+
+    const getRedirectURI = () => {
+      const currentDomain = window.location.origin
+      if (currentDomain.includes('replit.dev') || currentDomain.includes('localhost')) {
+        return `${currentDomain}/callback`
+      }
+      return 'https://spotmusic.xyz/callback'
+    }
+
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -29,8 +29,8 @@ class SpotifyService {
         grant_type: 'authorization_code',
         code: code,
         redirect_uri: getRedirectURI(),
-        client_id: CLIENT_ID,
-        code_verifier: codeVerifier,
+        client_id: this.CLIENT_ID,
+        code_verifier: verifier,
       }),
     })
 
@@ -41,7 +41,6 @@ class SpotifyService {
     const data = await response.json()
     this.accessToken = data.access_token
     this.refreshToken = data.refresh_token
-
     localStorage.setItem('spotify_access_token', this.accessToken)
     localStorage.setItem('spotify_refresh_token', this.refreshToken)
     localStorage.removeItem('code_verifier')
@@ -62,7 +61,7 @@ class SpotifyService {
       body: new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: this.refreshToken,
-        client_id: CLIENT_ID,
+        client_id: this.CLIENT_ID,
       }),
     })
 
@@ -112,6 +111,10 @@ class SpotifyService {
   }
 
   async getCurrentUser() {
+    return this.apiCall('/me')
+  }
+
+  async getUserProfile() {
     return this.apiCall('/me')
   }
 
@@ -166,5 +169,3 @@ class SpotifyService {
     this.refreshToken = null
   }
 }
-
-export default SpotifyService
