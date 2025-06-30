@@ -1,3 +1,4 @@
+
 // spotifyAuth.js
 const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6'
 
@@ -36,34 +37,71 @@ const SCOPES = [
 
 function generateRandomString(length) {
   const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  return Array.from(crypto.getRandomValues(new Uint8Array(length)))
-    .map(x => charset[x % charset.length])
-    .join('')
+  let result = ''
+  
+  // Fallback for Safari iOS - use Math.random instead of crypto
+  if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
+    for (let i = 0; i < length; i++) {
+      result += charset.charAt(Math.floor(Math.random() * charset.length))
+    }
+    return result
+  }
+  
+  const array = new Uint8Array(length)
+  crypto.getRandomValues(array)
+  for (let i = 0; i < length; i++) {
+    result += charset[array[i] % charset.length]
+  }
+  return result
 }
 
 async function generateCodeChallenge(verifier) {
-  const data = new TextEncoder().encode(verifier)
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
+  // Fallback for Safari iOS - skip PKCE if crypto.subtle not available
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    return null
+  }
+  
+  try {
+    const data = new TextEncoder().encode(verifier)
+    const digest = await crypto.subtle.digest('SHA-256', data)
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    return base64
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')
+  } catch (error) {
+    console.warn('PKCE not supported, falling back to basic auth flow')
+    return null
+  }
 }
 
 export async function redirectToSpotifyAuth() {
   const verifier = generateRandomString(128)
-  const challenge = await generateCodeChallenge(verifier)
+  let challenge = null
+  
+  // Try to generate code challenge, fallback gracefully
+  try {
+    challenge = await generateCodeChallenge(verifier)
+  } catch (error) {
+    console.warn('PKCE not supported on this device')
+  }
 
-  localStorage.setItem('code_verifier', verifier)
+  if (challenge) {
+    localStorage.setItem('code_verifier', verifier)
+  }
 
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: CLIENT_ID,
     scope: SCOPES.join(' '),
-    redirect_uri: REDIRECT_URI,
-    code_challenge_method: 'S256',
-    code_challenge: challenge
+    redirect_uri: REDIRECT_URI
   })
+
+  // Only add PKCE params if supported
+  if (challenge) {
+    params.append('code_challenge_method', 'S256')
+    params.append('code_challenge', challenge)
+  }
 
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`
 }

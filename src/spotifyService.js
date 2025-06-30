@@ -1,21 +1,20 @@
-
 // Spotify API service
 const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6' // Your actual client ID
 
 // Use dynamic redirect URI based on current domain
 const getRedirectURI = () => {
   const currentDomain = window.location.origin
-  
+
   // For Vercel deployments
   if (currentDomain.includes('vercel.app') || currentDomain === 'https://spotmusic.xyz') {
     return 'https://spotmusic.xyz/callback'
   }
-  
+
   // For development
   if (currentDomain.includes('replit.dev') || currentDomain.includes('localhost')) {
     return `${currentDomain}/callback`
   }
-  
+
   // Default to production URL
   return 'https://spotmusic.xyz/callback'
 }
@@ -27,20 +26,26 @@ class SpotifyService {
   }
 
   async exchangeCodeForToken(code) {
-    const codeVerifier = localStorage.getItem('code_verifier')
-    
+    const verifier = localStorage.getItem('code_verifier')
+
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: this.getRedirectURI(),
+      client_id: CLIENT_ID,
+    })
+
+    // Only add PKCE verifier if it exists (for Safari iOS compatibility)
+    if (verifier) {
+      body.append('code_verifier', verifier)
+    }
+
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: getRedirectURI(),
-        client_id: CLIENT_ID,
-        code_verifier: codeVerifier,
-      }),
+      body: body,
     })
 
     if (!response.ok) {
