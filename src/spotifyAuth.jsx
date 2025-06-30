@@ -1,6 +1,6 @@
 // spotifyAuth.js
 const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6'
-const REDIRECT_URI = `${window.location.origin}/callback`
+const REDIRECT_URI = 'https://spotmusic.xyz/callback'
 
 const SCOPES = [
   'user-read-private',

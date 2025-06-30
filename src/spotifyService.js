@@ -19,7 +19,7 @@ class SpotifyService {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: `${window.location.origin}/callback`,
+        redirect_uri: 'https://spotmusic.xyz/callback',
         client_id: CLIENT_ID,
         code_verifier: codeVerifier,
       }),
