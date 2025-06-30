@@ -8,6 +8,10 @@ channel = "stable-24_05"
 run = ["sh", "-c", "npm run preview"]
 build = ["sh", "-c", "npm run build"]
 
+[[deployment.rewrites]]
+from = "/*"
+to = "/index.html"
+
 [[ports]]
 localPort = 5173
 externalPort = 5173
