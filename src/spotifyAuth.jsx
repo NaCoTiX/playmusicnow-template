@@ -7,7 +7,7 @@ const getRedirectURI = () => {
   if (currentDomain.includes('replit.dev') || currentDomain.includes('localhost')) {
     return `${currentDomain}/callback`
   }
-  return 'https://spotmusic.xyz/callback'
+  return 'https://SpotMusic.xyz/callback'
 }
 
 const REDIRECT_URI = getRedirectURI()
