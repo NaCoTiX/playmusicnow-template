@@ -1,6 +1,16 @@
 // spotifyAuth.js
 const CLIENT_ID = 'f802e53f98464b8b9f91ce37a97b7ad6'
-const REDIRECT_URI = 'https://spotmusic.xyz/callback'
+
+// Use dynamic redirect URI based on current domain
+const getRedirectURI = () => {
+  const currentDomain = window.location.origin
+  if (currentDomain.includes('replit.dev') || currentDomain.includes('localhost')) {
+    return `${currentDomain}/callback`
+  }
+  return 'https://spotmusic.xyz/callback'
+}
+
+const REDIRECT_URI = getRedirectURI()
 
 const SCOPES = [
   'user-read-private',
