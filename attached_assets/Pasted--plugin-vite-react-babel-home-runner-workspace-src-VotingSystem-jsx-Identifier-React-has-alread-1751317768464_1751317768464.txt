@@ -1,0 +1,35 @@
+[plugin:vite:react-babel] /home/runner/workspace/src/VotingSystem.jsx: Identifier 'React' has already been declared. (50:7)
+  53 | export function VotingSystem({ song, onVote, userVote }) {
+/home/runner/workspace/src/VotingSystem.jsx:50:7
+48 |    )
+49 |  }
+50 |  import React from 'react'
+   |         ^
+51 |  import { useTheme } from './ThemeProvider'
+52 |
+    at constructor (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:363:19)
+    at JSXParserMixin.raise (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:6612:19)
+    at ScopeHandler.checkRedeclarationInScope (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:1629:19)
+    at ScopeHandler.declareName (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:1595:12)
+    at JSXParserMixin.declareNameFromIdentifier (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:7547:16)
+    at JSXParserMixin.checkIdentifier (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:7543:12)
+    at JSXParserMixin.checkLVal (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:7484:12)
+    at JSXParserMixin.finishImportSpecifier (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14197:10)
+    at JSXParserMixin.parseImportSpecifierLocal (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14194:31)
+    at JSXParserMixin.maybeParseDefaultImportSpecifier (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14301:12)
+    at JSXParserMixin.parseImportSpecifiersAndAfter (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14170:29)
+    at JSXParserMixin.parseImport (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14166:17)
+    at JSXParserMixin.parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12809:27)
+    at JSXParserMixin.parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12699:17)
+    at JSXParserMixin.parseModuleItem (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12676:17)
+    at JSXParserMixin.parseBlockOrModuleBlockBody (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:13249:36)
+    at JSXParserMixin.parseBlockBody (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:13242:10)
+    at JSXParserMixin.parseProgram (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12555:10)
+    at JSXParserMixin.parseTopLevel (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12545:25)
+    at JSXParserMixin.parse (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14423:10)
+    at parse (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:14457:38)
+    at parser (/home/runner/workspace/node_modules/@babel/core/lib/parser/index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (/home/runner/workspace/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (/home/runner/workspace/node_modules/@babel/core/lib/transformation/index.js:22:50)
