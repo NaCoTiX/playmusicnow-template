@@ -85,7 +85,7 @@ export default function Login() {
           color: colors.textSecondary,
           lineHeight: '1.6'
         }}>
-          Create collaborative playlists that anyone can contribute to</p>
+          Create collaborative playlists that anyone can contribute to
         </p>
 
         <div style={{ marginBottom: '3rem' }}>
