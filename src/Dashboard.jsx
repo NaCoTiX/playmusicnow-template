@@ -97,7 +97,7 @@ export default function Dashboard() {
       // Create Spotify playlist
       const spotifyPlaylist = await spotifyService.createPlaylist(
         playlist.name,
-        `${playlist.description} (Synced from PlayMusicNow)`
+        `${playlist.description} (Synced from SpotMusic.xyz)`
       )
 
       // Add tracks to Spotify playlist if there are any
@@ -522,11 +522,25 @@ export default function Dashboard() {
               padding: '1rem', 
               borderRadius: '8px',
               backgroundColor: colors.surface,
-              transition: 'all 0.3s ease'
-            }}>
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
+            }}
+            onClick={() => window.open(`https://open.spotify.com/playlist/${playlist.id}`, '_blank')}
+            onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
+            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+            >
               <h3 style={{ marginBottom: '0.5rem', color: colors.text }}>{playlist.name}</h3>
               <p style={{ color: colors.textSecondary, marginBottom: '1rem' }}>{playlist.description}</p>
-              <p style={{ fontSize: '0.9em', color: colors.textSecondary }}>{playlist.tracks} tracks</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p style={{ fontSize: '0.9em', color: colors.textSecondary, margin: 0 }}>{playlist.tracks} tracks</p>
+                <span style={{ 
+                  fontSize: '0.8rem', 
+                  color: colors.primary,
+                  fontWeight: 'bold'
+                }}>
+                  Click to open →
+                </span>
+              </div>
             </div>
           ))}
         </div>
